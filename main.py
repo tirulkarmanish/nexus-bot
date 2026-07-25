@@ -1,4 +1,5 @@
 import os
+import time
 import random
 import asyncio
 from google import genai
@@ -28,12 +29,20 @@ def generate_script():
     - Language: Energetic Hinglish (Hindi + English).
     - Output: Plain spoken text ONLY. No brackets, no captions, no metadata.
     """
-    # 2026 ka latest standard flash model
-    response = client.models.generate_content(
-        model='gemini-2.0-flash',
-        contents=prompt
-    )
-    return response.text.strip()
+    
+    # Quota / Rate Limit handling with retries
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.0-flash',
+                contents=prompt
+            )
+            return response.text.strip()
+        except Exception as e:
+            print(f"⚠️ API Limit Hit, waiting 15 seconds... (Attempt {attempt+1}/3)")
+            time.sleep(15)
+            
+    raise RuntimeError("Failed to generate script after 3 attempts due to quota limits.")
 
 # --- 2. VOICEOVER GENERATION ---
 async def generate_audio(text, output_file="voice.mp3"):
