@@ -4,7 +4,7 @@ import asyncio
 from google import genai
 import edge_tts
 from moviepy.audio.io.AudioFileClip import AudioFileClip
-from moviepy.video.VideoClip import ColorClip, TextClip
+from moviepy.video.VideoClip import ColorClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 
 # --- 1. SCRIPT GENERATION ---
@@ -28,8 +28,9 @@ def generate_script():
     - Language: Energetic Hinglish (Hindi + English).
     - Output: Plain spoken text ONLY. No brackets, no captions, no metadata.
     """
+    # 2026 ka latest standard flash model
     response = client.models.generate_content(
-        model='gemini-1.5-flash',
+        model='gemini-2.0-flash',
         contents=prompt
     )
     return response.text.strip()
@@ -46,11 +47,8 @@ def create_video(audio_path="voice.mp3", output_path="final_short.mp4"):
     # 1080x1920 Vertical Canvas (Shorts Format)
     bg = ColorClip(size=(1080, 1920), color=(15, 23, 42), duration=audio.duration)
     
-    # Title Overlay
-    text = TextClip(text="NEXUS EARNING", font_size=75, color='yellow', font='Arial-Bold')
-    text = text.with_position(('center', 300)).with_duration(audio.duration)
-    
-    final_video = CompositeVideoClip([bg, text]).with_audio(audio)
+    # Merge Video & Audio
+    final_video = CompositeVideoClip([bg]).with_audio(audio)
     final_video.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
 
 # --- MAIN EXECUTION ---
