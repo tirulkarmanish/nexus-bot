@@ -1,17 +1,19 @@
 import os
 import random
 import asyncio
-import google.generativeai as genai
+from google import genai
 import edge_tts
-from moviepy.editor import AudioFileClip, ColorClip, TextClip, CompositeVideoClip
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.video.VideoClip import ColorClip, TextClip
+from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 
 # --- 1. SCRIPT GENERATION ---
-GENAI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GENAI_API_KEY)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 CATEGORIES = [
     "Mobile apps that pay real cash for micro-tasks",
-    "High-paying freelancing skills for beginners",
+    "High-paying freelancing skills for beginners in 2026",
     "Best passive income tools & websites",
     "Student side-hustles with zero investment",
     "AI tools to make money online"
@@ -26,8 +28,10 @@ def generate_script():
     - Language: Energetic Hinglish (Hindi + English).
     - Output: Plain spoken text ONLY. No brackets, no captions, no metadata.
     """
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=prompt
+    )
     return response.text.strip()
 
 # --- 2. VOICEOVER GENERATION ---
@@ -43,10 +47,10 @@ def create_video(audio_path="voice.mp3", output_path="final_short.mp4"):
     bg = ColorClip(size=(1080, 1920), color=(15, 23, 42), duration=audio.duration)
     
     # Title Overlay
-    text = TextClip("NEXUS EARNING", fontsize=75, color='yellow', font='Arial-Bold')
-    text = text.set_position(('center', 300)).set_duration(audio.duration)
+    text = TextClip(text="NEXUS EARNING", font_size=75, color='yellow', font='Arial-Bold')
+    text = text.with_position(('center', 300)).with_duration(audio.duration)
     
-    final_video = CompositeVideoClip([bg, text]).set_audio(audio)
+    final_video = CompositeVideoClip([bg, text]).with_audio(audio)
     final_video.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
 
 # --- MAIN EXECUTION ---
