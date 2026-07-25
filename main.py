@@ -29,7 +29,7 @@ def generate_script():
     - Output: Plain spoken text ONLY. No brackets, no captions, no metadata.
     """
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-1.5-flash',
         contents=prompt
     )
     return response.text.strip()
